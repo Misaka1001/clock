@@ -1,19 +1,23 @@
 <template>
   <div id="app">
-    <div id="clock">
+    <!-- :style="`transform:scale(${vw/1920})`" -->
+    <div id="clock" >
       <svg width="500" height="500">
       <g class="circle">
         <circle cx="250" cy="250" r="150" stroke="rgb(50,95,162)" fill="none" stroke-width="10"/>
         <line v-for="val in icon_1" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-125" x2="0" y2="-140" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
         <line v-for="val in icon_2" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-135" x2="0" y2="-140" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
       </g>
-      <g class="hour" @mousedown="hour_change('hour')" :transform="`translate(250,250)rotate(${hour * 30})`">
+      <g class="hour" @mousedown="hour_change('hour')"
+      :transform="`translate(250,250)rotate(${hour * 30 + minute * 0.5})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:10;stroke-linecap:round"/>
       </g>
-      <g class="minute" @mousedown="hour_change('minute')"  :transform="`translate(250,250)rotate(${minute * 6})`">
+      <g class="minute" @mousedown="hour_change('minute')"
+        :transform="`translate(250,250)rotate(${minute * 6 + second * 0.1})`">
         <line x1="0" y1="15" x2="0" y2="-130" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
       </g>
-      <g class="second" @mousedown="hour_change('second')" :transform="`translate(250,250)rotate(${second * 6})`">
+      <g class="second" @mousedown="hour_change('second')"
+        :transform="`translate(250,250)rotate(${second * 6})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#d00;stroke-width:8;stroke-linecap:round"/>
         <circle cx="0" cy="-108" r="8" fill="none" style="stroke:#d00;stroke-width:7"/>
       </g>
@@ -45,6 +49,9 @@
 export default {
   mounted () {
     this.init()
+    window.onresize = () => {
+      this.vw = document.body.clientWidth
+    }
   },
   data () {
     return {
@@ -73,7 +80,7 @@ export default {
       hour: null,
       minute: null,
       second: null,
-      vw: null
+      vw: document.body.clientWidth
     }
   },
   methods: {
@@ -194,43 +201,51 @@ export default {
     font-size: 2vw;
   }
 }
-#app {
-  #clock{
-  }
-  .control{
-    width: 30rem;
+body{
+  width: 100%;
+  height: 100%;
+  #app {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    button{
-      font-size: 3rem;
-      width: 7rem;
-      height: 3rem;
-      line-height: 2rem;
-      border-radius: 0.1rem;
-      outline: none;
-      background: #fff;
-      border: 1px solid #333;
-      border-radius: 0.5rem;
-      margin: 0 0.3rem;
-      &:active{
-        background: rgba(0, 0, 0, 0.1);
-      }
+    #clock{
     }
-    .time{
-      font-size: 2rem;
-      height: 3rem;
-      line-height: 3rem;
-      span:nth-of-type(2n+1){
-        display: inline-block;
+    .control{
+      width: 30rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      button{
+        font-size: 3rem;
         width: 7rem;
-        text-align: center;
+        height: 3rem;
+        line-height: 2rem;
+        border-radius: 0.1rem;
+        outline: none;
+        background: #fff;
+        border: 1px solid #333;
+        border-radius: 0.5rem;
+        margin: 0 0.3rem;
+        &:active{
+          background: rgba(0, 0, 0, 0.1);
+        }
       }
-      span:nth-of-type(2n){
-        display: inline-block;
-        width: 0.3rem;
-        text-align: center;
+      .time{
+        font-size: 2rem;
+        height: 3rem;
+        line-height: 3rem;
+        span:nth-of-type(2n+1){
+          display: inline-block;
+          width: 7rem;
+          text-align: center;
+        }
+        span:nth-of-type(2n){
+          display: inline-block;
+          width: 0.3rem;
+          text-align: center;
+        }
       }
     }
   }
