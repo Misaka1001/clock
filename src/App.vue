@@ -180,7 +180,7 @@ export default {
       this.second = this.time.getSeconds() + this.second_add
     },
     hour () {
-
+      this.hour_add = this.hour - this.time.getHours()
     }
   }
 }
