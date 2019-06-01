@@ -54,7 +54,6 @@ export default {
   },
   data () {
     return {
-      time: new Date(),
       icon_1: (function () {
         let arr = []
         for (let i = 0; i <= 12; i++) {
@@ -71,29 +70,30 @@ export default {
         }
         return arr
       }()),
+      interval: null,
+      vw: document.body.clientWidth,
+      time: Date.now(),
+      hour: 0,
+      minute: 0,
+      second: 0,
       hour_add: 0,
       minute_add: 0,
-      second_add: 0,
-      interval: null,
-      hour: null,
-      minute: null,
-      second: null,
-      vw: document.body.clientWidth
+      second_add: 0
     }
   },
   methods: {
     init () {
-      this.time = new Date()
+      this.time = Date.now()
       this.interval = setInterval(() => {
-        this.time = new Date()
+        this.time = Date.now()
       }, 1000)
     },
     hourBtn (flag) {
       clearInterval(this.interval)
       if (flag) {
-        this.hour_add++
-        if (this.hour === 24) {
-          this.hour_add = -this.time.getHours()
+        this.hour_add += 3600000
+        if (this.hour === 12) {
+          this.hour_add = -new Date(this.time).getHours * 3600000
         }
       } else {
         this.hour_add--
@@ -106,16 +106,16 @@ export default {
     minuteBtn (flag) {
       clearInterval(this.interval)
       if (flag) {
-        this.minute_add++
+        this.minute_add += 60000
         if (this.minute === 60) {
           this.minute_add = -this.time.getMinutes()
-          this.hour_add++
+          this.hour_add += 3600000
         }
       } else {
-        this.minute_add--
+        this.minute_add -= 60000
         if (this.minute < 0) {
           this.minute_add = 59 - this.time.getMinutes()
-          this.hour_add--
+          this.hour_add -= 3600000
         }
       }
       this.init()
@@ -123,16 +123,16 @@ export default {
     secondBtn (flag) {
       clearInterval(this.interval)
       if (flag) {
-        this.second_add++
+        this.second_add += 1000
         if (this.second >= 60) {
-          this.second_add = -this.time.getSeconds()
-          this.minute_add++
+          this.second_add = -this.time.getSeconds() * 1000
+          this.minute_add += 60000
         }
       } else {
-        this.second_add--
+        this.second_add -= 1000
         if (this.second < 0) {
-          this.second_add = 59 - this.time.getSeconds()
-          this.minute_add--
+          this.second_add = 59 - this.time.getSeconds() * 1000
+          this.minute_add -= 60000
         }
       }
       this.init()
@@ -162,10 +162,19 @@ export default {
             rotate = Math.atan(Math.abs(x) / Math.abs(y)) * 180 / Math.PI + 180
           }
         }
+        let now = new Date(self.time)
         if (prop === 'hour') {
-          self.hour = rotate / 30
-        } else {
-          self[prop] = rotate / 6
+          let oldHour = now.getHours()
+          if (oldHour >= 12) {
+            oldHour -= 12
+          }
+          self.hour_add = rotate / 30 * 3600000 - oldHour * 3600000
+        } else if (prop === 'minute') {
+          let oldminute = now.getMinutes()
+          self.minute_add = rotate / 6 * 60000 - oldminute * 60000
+        } else if (prop === 'second') {
+          let oldSecond = now.getSeconds()
+          self.second_add = rotate / 6 * 1000 - oldSecond * 1000
         }
       }
       function up () {
@@ -178,28 +187,30 @@ export default {
   },
   watch: {
     time () {
-      this.hour = this.time.getHours() + this.hour_add
-      this.minute = this.time.getMinutes() + this.minute_add
-      this.second = this.time.getSeconds() + this.second_add
+      let now = new Date(this.time + this.time_add)
+      this.hour = (function () {
+        let hour = now.getHours()
+        if (hour >= 13) {
+          return hour - 12
+        } else {
+          return hour
+        }
+      }())
+      this.minute = now.getMinutes()
+      this.second = now.getSeconds()
     },
-    hour () {
-      this.hour_add = this.hour - this.time.getHours()
-    },
-    minute () {
-      if (Math.floor(this.minute) === 60) {
-        this.minute_add -= 60
-      }
-      this.minute_add = this.minute - this.time.getMinutes()
-    },
-    second () {
-      if (Math.floor(this.second) === 60) {
-        this.second_add -= 60
-        this.second = this.time.getSeconds() + this.second_add
-        this.minute++
-      } else if (Math.floor(this.second) === 0) {
-        this.second_add += 60
-      }
-      this.second_add = this.second - new Date().getSeconds()
+    time_add () {
+      let now = new Date(this.time + this.time_add)
+      this.hour = (function () {
+        let hour = now.getHours()
+        if (hour >= 13) {
+          return hour - 12
+        } else {
+          return hour
+        }
+      }())
+      this.minute = now.getMinutes()
+      this.second = now.getSeconds()
     }
   },
   computed: {
@@ -214,6 +225,9 @@ export default {
       } else if (vw < 480) {
         return vw * 0.8 / 500
       }
+    },
+    time_add () {
+      return this.hour_add + this.minute_add + this.second_add
     }
   }
 }
