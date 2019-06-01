@@ -92,13 +92,13 @@ export default {
       clearInterval(this.interval)
       if (flag) {
         this.hour_add += 3600000
-        if (this.hour === 12) {
+        if (this.hour > 12) {
           this.hour_add = -new Date(this.time).getHours * 3600000
         }
       } else {
-        this.hour_add--
+        this.hour_add -= 3600000
         if (this.hour < 0) {
-          this.hour_add = 23 - this.time.getHours()
+          this.hour_add = 23 - new Date(this.time).getHours * 3600000
         }
       }
       this.init()
@@ -192,6 +192,8 @@ export default {
         let hour = now.getHours()
         if (hour >= 13) {
           return hour - 12
+        } else if (hour === 0) {
+          return 12
         } else {
           return hour
         }
@@ -205,6 +207,8 @@ export default {
         let hour = now.getHours()
         if (hour >= 13) {
           return hour - 12
+        } else if (hour === 0) {
+          return 12
         } else {
           return hour
         }
