@@ -12,7 +12,7 @@
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:10;stroke-linecap:round"/>
       </g>
       <g class="minute" @mousedown="drag_change('minute')"
-        :transform="`translate(250,250)rotate(${minute * 6 + second * 0.1})`">
+        :transform="`translate(250,250)rotate(${minute * 6})`">
         <line x1="0" y1="15" x2="0" y2="-130" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
       </g>
       <g class="second" @mousedown="drag_change('second')"
@@ -181,18 +181,21 @@ export default {
       this.hour = this.time.getHours() + this.hour_add
       this.minute = this.time.getMinutes() + this.minute_add
       this.second = this.time.getSeconds() + this.second_add
-      console.log(this.second)
     },
     hour () {
       this.hour_add = this.hour - this.time.getHours()
     },
     minute () {
+      if (Math.floor(this.minute) === 60) {
+        this.minute_add -= 60
+      }
       this.minute_add = this.minute - this.time.getMinutes()
     },
     second () {
       if (Math.floor(this.second) === 60) {
         this.second_add -= 60
         this.second = this.time.getSeconds() + this.second_add
+        this.minute++
       } else if (Math.floor(this.second) === 0) {
         this.second_add += 60
       }
