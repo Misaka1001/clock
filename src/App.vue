@@ -1,22 +1,21 @@
 <template>
   <div id="app">
-    <!-- :style="`transform:scale(${vw/1920})`" -->
-    <div id="clock" >
+    <div id="clock" :style="`transform:scale(${scale})`">
       <svg width="500" height="500">
       <g class="circle">
         <circle cx="250" cy="250" r="150" stroke="rgb(50,95,162)" fill="none" stroke-width="10"/>
         <line v-for="val in icon_1" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-125" x2="0" y2="-140" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
         <line v-for="val in icon_2" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-135" x2="0" y2="-140" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
       </g>
-      <g class="hour" @mousedown="hour_change('hour')"
+      <g class="hour" @mousedown="drag_change('hour')"
       :transform="`translate(250,250)rotate(${hour * 30 + minute * 0.5})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:10;stroke-linecap:round"/>
       </g>
-      <g class="minute" @mousedown="hour_change('minute')"
+      <g class="minute" @mousedown="drag_change('minute')"
         :transform="`translate(250,250)rotate(${minute * 6 + second * 0.1})`">
         <line x1="0" y1="15" x2="0" y2="-130" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
       </g>
-      <g class="second" @mousedown="hour_change('second')"
+      <g class="second" @mousedown="drag_change('second')"
         :transform="`translate(250,250)rotate(${second * 6})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#d00;stroke-width:8;stroke-linecap:round"/>
         <circle cx="0" cy="-108" r="8" fill="none" style="stroke:#d00;stroke-width:7"/>
@@ -55,7 +54,6 @@ export default {
   },
   data () {
     return {
-      rot: 30,
       time: new Date(),
       icon_1: (function () {
         let arr = []
@@ -91,6 +89,7 @@ export default {
       }, 1000)
     },
     hourBtn (flag) {
+      clearInterval(this.interval)
       if (flag) {
         this.hour_add++
         if (this.hour === 24) {
@@ -102,8 +101,10 @@ export default {
           this.hour_add = 23 - this.time.getHours()
         }
       }
+      this.init()
     },
     minuteBtn (flag) {
+      clearInterval(this.interval)
       if (flag) {
         this.minute_add++
         if (this.minute === 60) {
@@ -117,8 +118,10 @@ export default {
           this.hour_add--
         }
       }
+      this.init()
     },
     secondBtn (flag) {
+      clearInterval(this.interval)
       if (flag) {
         this.second_add++
         if (this.second >= 60) {
@@ -132,8 +135,9 @@ export default {
           this.minute_add--
         }
       }
+      this.init()
     },
-    hour_change (prop) {
+    drag_change (prop) {
       document.addEventListener('mousemove', move, false)
       clearInterval(this.interval)
       let self = this
@@ -158,7 +162,6 @@ export default {
             rotate = Math.atan(Math.abs(x) / Math.abs(y)) * 180 / Math.PI + 180
           }
         }
-        self.rot = rotate
         if (prop === 'hour') {
           self.hour = rotate / 30
         } else {
@@ -178,9 +181,36 @@ export default {
       this.hour = this.time.getHours() + this.hour_add
       this.minute = this.time.getMinutes() + this.minute_add
       this.second = this.time.getSeconds() + this.second_add
+      console.log(this.second)
     },
     hour () {
       this.hour_add = this.hour - this.time.getHours()
+    },
+    minute () {
+      this.minute_add = this.minute - this.time.getMinutes()
+    },
+    second () {
+      if (Math.floor(this.second) === 60) {
+        this.second_add -= 60
+        this.second = this.time.getSeconds() + this.second_add
+      } else if (Math.floor(this.second) === 0) {
+        this.second_add += 60
+      }
+      this.second_add = this.second - new Date().getSeconds()
+    }
+  },
+  computed: {
+    scale () {
+      let vw = this.vw
+      if (vw >= 1000) {
+        return vw * 0.3 / 500
+      } else if (vw < 1000 && vw >= 800) {
+        return vw * 0.4 / 500
+      } else if (vw < 800 && vw >= 480) {
+        return vw * 0.6 / 500
+      } else if (vw < 480) {
+        return vw * 0.8 / 500
+      }
     }
   }
 }
@@ -209,7 +239,10 @@ body{
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    width: 100%;
     #clock{
+      width: 500px;
+      height: 500px;
     }
     .control{
       width: 30rem;
