@@ -148,7 +148,7 @@ export default {
         let height = clock.offsetHeight
         let x = e.clientX - left - width / 2
         let y = height / 2 - e.clientY
-        let rotate
+        let rotate = 0
         if (x >= 0) {
           if (y >= 0) {
             rotate = Math.atan(x / y) * 180 / Math.PI
@@ -168,13 +168,13 @@ export default {
           if (oldHour >= 12) {
             oldHour -= 12
           }
-          self.hour_add = rotate / 30 * 3600000 - oldHour * 3600000
+          self.hour_add = (rotate / 30 - 1) * 3600000 - oldHour * 3600000
         } else if (prop === 'minute') {
           let oldminute = now.getMinutes()
-          self.minute_add = rotate / 6 * 60000 - oldminute * 60000
+          self.minute_add = (rotate / 6) * 60000 - oldminute * 60000
         } else if (prop === 'second') {
           let oldSecond = now.getSeconds()
-          self.second_add = rotate / 6 * 1000 - oldSecond * 1000
+          self.second_add = (rotate / 6) * 1000 - oldSecond * 1000
         }
       }
       function up () {
