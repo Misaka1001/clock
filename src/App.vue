@@ -117,13 +117,17 @@ export default {
             rotate = Math.atan(Math.abs(x) / Math.abs(y)) * 180 / Math.PI + 180
           }
         }
-        let now = new Date(self.time)
+        let now = new Date(self.time + self.time_add)
         if (prop === 'hour') {
           let oldHour = now.getHours()
-          self.drag_add_time = (rotate / 30) * 3600000 - oldHour * 3600000
+          let oldMinute = now.getMinutes()
+          if (oldHour >= 12) {
+            oldHour -= 12
+          }
+          self.drag_add_time = (rotate / 30) * 3600000 - oldHour * 3600000 - oldMinute * 60000
         } else if (prop === 'minute') {
-          let oldminute = now.getMinutes()
-          self.drag_add_time = (rotate / 6) * 60000 - oldminute * 60000
+          let oldMinute = now.getMinutes()
+          self.drag_add_time = (rotate / 6) * 60000 - oldMinute * 60000
         } else if (prop === 'second') {
           let oldSecond = now.getSeconds()
           self.drag_add_time = (rotate / 6) * 1000 - oldSecond * 1000
