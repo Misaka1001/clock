@@ -3,24 +3,24 @@
     <div id="clock" :style="`transform:scale(${scale})`">
       <svg width="500" height="500">
       <g class="circle">
-        <circle cx="250" cy="250" r="150" stroke="rgb(50,95,162)" fill="none" stroke-width="10"/>
-        <line v-for="val in icon_1" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-125" x2="0" y2="-140" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
-        <line v-for="val in icon_2" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-135" x2="0" y2="-140" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
+        <circle cx="250" cy="250" r="150" stroke="rgb(50,95,162)" fill="none" stroke-width="15"/>
+        <line v-for="val in icon_1" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-120" x2="0" y2="-135" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
+        <line v-for="val in icon_2" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-130" x2="0" y2="-135" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
       </g>
       <g class="hour" @mousedown="drag_change('hour')"
       :transform="`translate(250,250)rotate(${hour * 30 + minute * 0.5})`">
-        <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:10;stroke-linecap:round"/>
+        <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:15;stroke-linecap:round"/>
       </g>
       <g class="minute" @mousedown="drag_change('minute')"
         :transform="`translate(250,250)rotate(${minute * 6})`">
-        <line x1="0" y1="15" x2="0" y2="-130" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
+        <line x1="0" y1="15" x2="0" y2="-130" style="stroke:#333;stroke-width:10;stroke-linecap:round"/>
       </g>
       <g class="second" @mousedown="drag_change('second')"
         :transform="`translate(250,250)rotate(${second * 6})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#d00;stroke-width:8;stroke-linecap:round"/>
         <circle cx="0" cy="-108" r="8" fill="none" style="stroke:#d00;stroke-width:7"/>
       </g>
-      <circle cx="250" cy="250" r="8" stroke="#d00" fill="#d00"/>
+      <circle cx="250" cy="250" r="10" stroke="#d00" fill="#d00"/>
     </svg>
     </div>
     <div class="control">
@@ -183,38 +183,29 @@ export default {
         self.init()
       }
       document.addEventListener('mouseup', up, false)
+    },
+    watch_time () {
+      let now = new Date(this.time + this.time_add)
+      this.hour = (function () {
+        let hour = now.getHours()
+        if (hour >= 13) {
+          return hour - 12
+        } else if (hour === 0) {
+          return 12
+        } else {
+          return hour
+        }
+      }())
+      this.minute = now.getMinutes()
+      this.second = now.getSeconds()
     }
   },
   watch: {
     time () {
-      let now = new Date(this.time + this.time_add)
-      this.hour = (function () {
-        let hour = now.getHours()
-        if (hour >= 13) {
-          return hour - 12
-        } else if (hour === 0) {
-          return 12
-        } else {
-          return hour
-        }
-      }())
-      this.minute = now.getMinutes()
-      this.second = now.getSeconds()
+      this.watch_time()
     },
     time_add () {
-      let now = new Date(this.time + this.time_add)
-      this.hour = (function () {
-        let hour = now.getHours()
-        if (hour >= 13) {
-          return hour - 12
-        } else if (hour === 0) {
-          return 12
-        } else {
-          return hour
-        }
-      }())
-      this.minute = now.getMinutes()
-      this.second = now.getSeconds()
+      this.watch_time()
     }
   },
   computed: {
