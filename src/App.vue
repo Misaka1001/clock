@@ -25,9 +25,9 @@
     </div>
     <div class="control">
       <section>
-        <button @click="hourBtn(true)">+</button>
-        <button @click="minuteBtn(true)">+</button>
-        <button @click="secondBtn(true)">+</button>
+        <button @click="btnChange(3600000)">+</button>
+        <button @click="btnChange(60000)">+</button>
+        <button @click="btnChange(1000)">+</button>
       </section>
       <section class="time">
         <span>{{ hour > 9 ? Math.floor(hour) : '0' + Math.floor(hour) }}</span>
@@ -37,9 +37,9 @@
         <span>{{ second > 9 ? Math.floor(second) : '0' + Math.floor(second) }}</span>
       </section>
       <section>
-        <button @click="hourBtn(false)">-</button>
-        <button @click="minuteBtn(false)">-</button>
-        <button @click="secondBtn(false)">-</button>
+        <button @click="btnChange(-3600000)">-</button>
+        <button @click="btnChange(-60000)">-</button>
+        <button @click="btnChange(-1000)">-</button>
       </section>
     </div>
   </div>
@@ -72,13 +72,12 @@ export default {
       }()),
       interval: null,
       vw: document.body.clientWidth,
-      time: Date.now(),
+      time: 0,
       hour: 0,
       minute: 0,
       second: 0,
-      hour_add: 0,
-      minute_add: 0,
-      second_add: 0
+      time_add: 0,
+      drag_add_time: 0
     }
   },
   methods: {
@@ -88,53 +87,9 @@ export default {
         this.time = Date.now()
       }, 1000)
     },
-    hourBtn (flag) {
+    btnChange (num) {
       clearInterval(this.interval)
-      if (flag) {
-        this.hour_add += 3600000
-        if (this.hour > 12) {
-          this.hour_add = -new Date(this.time).getHours * 3600000
-        }
-      } else {
-        this.hour_add -= 3600000
-        if (this.hour < 0) {
-          this.hour_add = 23 - new Date(this.time).getHours * 3600000
-        }
-      }
-      this.init()
-    },
-    minuteBtn (flag) {
-      clearInterval(this.interval)
-      if (flag) {
-        this.minute_add += 60000
-        if (this.minute === 60) {
-          this.minute_add = -this.time.getMinutes()
-          this.hour_add += 3600000
-        }
-      } else {
-        this.minute_add -= 60000
-        if (this.minute < 0) {
-          this.minute_add = 59 - this.time.getMinutes()
-          this.hour_add -= 3600000
-        }
-      }
-      this.init()
-    },
-    secondBtn (flag) {
-      clearInterval(this.interval)
-      if (flag) {
-        this.second_add += 1000
-        if (this.second >= 60) {
-          this.second_add = -this.time.getSeconds() * 1000
-          this.minute_add += 60000
-        }
-      } else {
-        this.second_add -= 1000
-        if (this.second < 0) {
-          this.second_add = 59 - this.time.getSeconds() * 1000
-          this.minute_add -= 60000
-        }
-      }
+      this.time_add += num
       this.init()
     },
     drag_change (prop) {
@@ -165,19 +120,17 @@ export default {
         let now = new Date(self.time)
         if (prop === 'hour') {
           let oldHour = now.getHours()
-          if (oldHour >= 12) {
-            oldHour -= 12
-          }
-          self.hour_add = (rotate / 30 - 1) * 3600000 - oldHour * 3600000
+          self.drag_add_time = (rotate / 30) * 3600000 - oldHour * 3600000
         } else if (prop === 'minute') {
           let oldminute = now.getMinutes()
-          self.minute_add = (rotate / 6) * 60000 - oldminute * 60000
+          self.drag_add_time = (rotate / 6) * 60000 - oldminute * 60000
         } else if (prop === 'second') {
           let oldSecond = now.getSeconds()
-          self.second_add = (rotate / 6) * 1000 - oldSecond * 1000
+          self.drag_add_time = (rotate / 6) * 1000 - oldSecond * 1000
         }
       }
       function up () {
+        self.drag_add_time = 0
         document.removeEventListener('mousemove', move)
         document.removeEventListener('mouseup', up)
         self.init()
@@ -185,7 +138,7 @@ export default {
       document.addEventListener('mouseup', up, false)
     },
     watch_time () {
-      let now = new Date(this.time + this.time_add)
+      let now = new Date(this.time + this.time_add + this.drag_add_time)
       this.hour = (function () {
         let hour = now.getHours()
         if (hour >= 13) {
@@ -206,6 +159,9 @@ export default {
     },
     time_add () {
       this.watch_time()
+    },
+    drag_add_time () {
+      this.watch_time()
     }
   },
   computed: {
@@ -220,9 +176,6 @@ export default {
       } else if (vw < 480) {
         return vw * 0.8 / 500
       }
-    },
-    time_add () {
-      return this.hour_add + this.minute_add + this.second_add
     }
   }
 }
