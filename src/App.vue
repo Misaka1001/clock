@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <div id="clock" :style="`transform:scale(${scale})`">
-      <svg width="500" height="500">
+    <div id="clock">
+      <svg width="500" height="500" :style="`transform:scale(${scale})`">
       <g class="circle">
         <circle cx="250" cy="250" r="150" stroke="rgb(50,95,162)" fill="none" stroke-width="15"/>
         <line v-for="val in icon_1" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-120" x2="0" y2="-135" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
@@ -188,12 +188,23 @@ export default {
 * {
   padding: 0;
   margin: 0;
+  border: 0;
 }
-:root {
-  font-size: 1vw;
+@mixin flex-center {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+@mixin flex-column-center{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+:root {
+  font-size: 1vw;
+}
+html{
+  height: 100%;
 }
 @media screen and(max-width : 800px){
   :root{
@@ -204,22 +215,19 @@ body{
   width: 100%;
   height: 100%;
   #app {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    @include flex-column-center;
     width: 100%;
+    height: 100%;
     #clock{
       width: 500px;
       height: 500px;
     }
     .control{
       width: 30rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
+      height: 10rem;
+      @include flex-column-center;
       button{
+        vertical-align: center;
         font-size: 3rem;
         width: 7rem;
         height: 3rem;
@@ -238,15 +246,15 @@ body{
         font-size: 2rem;
         height: 3rem;
         line-height: 3rem;
-        span:nth-of-type(2n+1){
+        span{
           display: inline-block;
-          width: 7rem;
           text-align: center;
-        }
-        span:nth-of-type(2n){
-          display: inline-block;
-          width: 0.3rem;
-          text-align: center;
+          &:nth-of-type(2n+1) {
+            width: 7rem;
+          }
+          &:nth-of-type(2n) {
+            width: 0.3rem;
+          }
         }
       }
     }
