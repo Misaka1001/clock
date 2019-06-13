@@ -4,18 +4,18 @@
       <svg width="500" height="500" :style="`transform:scale(${scale})`">
       <g class="circle">
         <circle cx="250" cy="250" r="150" stroke="rgb(50,95,162)" fill="none" stroke-width="15"/>
-        <line v-for="val in icon_1" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-120" x2="0" y2="-135" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
-        <line v-for="val in icon_2" :key="val" :transform="`translate(250,250)rotate(${val})`" x1="0" y1="-130" x2="0" y2="-135" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
+        <line v-for="val in 12" :key="'large' + val" :transform="`translate(250,250)rotate(${val * 30})`" x1="0" y1="-120" x2="0" y2="-135" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
+        <line v-for="val in 60" :key="'little' + val" :transform="`translate(250,250)rotate(${val * 6})`" x1="0" y1="-130" x2="0" y2="-135" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
       </g>
-      <g class="hour" @mousedown="drag_change('hour')"
+      <g class="hour" @mousedown="dragChange('hour')" @touchmove="test"
       :transform="`translate(250,250)rotate(${hour * 30 + minute * 0.5})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:15;stroke-linecap:round"/>
       </g>
-      <g class="minute" @mousedown="drag_change('minute')"
+      <g class="minute" @mousedown="dragChange('minute')"
         :transform="`translate(250,250)rotate(${minute * 6})`">
         <line x1="0" y1="15" x2="0" y2="-130" style="stroke:#333;stroke-width:10;stroke-linecap:round"/>
       </g>
-      <g class="second" @mousedown="drag_change('second')"
+      <g class="second" @mousedown="dragChange('second')"
         :transform="`translate(250,250)rotate(${second * 6})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#d00;stroke-width:8;stroke-linecap:round"/>
         <circle cx="0" cy="-108" r="8" fill="none" style="stroke:#d00;stroke-width:7"/>
@@ -25,9 +25,7 @@
     </div>
     <div class="control">
       <section>
-        <button @click="btnChange(3600000)">+</button>
-        <button @click="btnChange(60000)">+</button>
-        <button @click="btnChange(1000)">+</button>
+        <button v-for="val in [3600000, 60000, 1000]" :key="val" @click="btnChange(val)">+</button>
       </section>
       <section class="time">
         <span>{{ hour > 9 ? Math.floor(hour) : '0' + Math.floor(hour) }}</span>
@@ -37,9 +35,7 @@
         <span>{{ second > 9 ? Math.floor(second) : '0' + Math.floor(second) }}</span>
       </section>
       <section>
-        <button @click="btnChange(-3600000)">-</button>
-        <button @click="btnChange(-60000)">-</button>
-        <button @click="btnChange(-1000)">-</button>
+        <button v-for="val in [-3600000, -60000, -1000]" :key="val" @click="btnChange(val)">-</button>
       </section>
     </div>
   </div>
@@ -54,33 +50,20 @@ export default {
   },
   data () {
     return {
-      icon_1: (function () {
-        let arr = []
-        for (let i = 0; i <= 12; i++) {
-          arr.push(i * 30)
-        }
-        return arr
-      }()),
-      icon_2: (function () {
-        let arr = []
-        for (let i = 1; i < 60; i++) {
-          if (i * 6 % 30 !== 0) {
-            arr.push(i * 6)
-          }
-        }
-        return arr
-      }()),
       interval: null,
       vw: document.body.clientWidth,
       time: 0,
       hour: 0,
       minute: 0,
       second: 0,
-      time_add: 0,
-      drag_add_time: 0
+      timeAdd: 0,
+      dragAddTime: 0
     }
   },
   methods: {
+    test () {
+      console.log('touch')
+    },
     init () {
       this.time = Date.now()
       this.interval = setInterval(() => {
@@ -89,10 +72,10 @@ export default {
     },
     btnChange (num) {
       clearInterval(this.interval)
-      this.time_add += num
+      this.timeAdd += num
       this.init()
     },
-    drag_change (prop) {
+    dragChange (prop) {
       document.addEventListener('mousemove', move, false)
       clearInterval(this.interval)
       let self = this
@@ -117,32 +100,32 @@ export default {
             rotate = Math.atan(Math.abs(x) / Math.abs(y)) * 180 / Math.PI + 180
           }
         }
-        let now = new Date(self.time + self.time_add)
+        let now = new Date(self.time + self.timeAdd)
         if (prop === 'hour') {
           let oldHour = now.getHours()
           let oldMinute = now.getMinutes()
           if (oldHour >= 12) {
             oldHour -= 12
           }
-          self.drag_add_time = (rotate / 30) * 3600000 - oldHour * 3600000 - oldMinute * 60000
+          self.dragAddTime = (rotate / 30) * 3600000 - oldHour * 3600000 - oldMinute * 60000
         } else if (prop === 'minute') {
           let oldMinute = now.getMinutes()
-          self.drag_add_time = (rotate / 6) * 60000 - oldMinute * 60000
+          self.dragAddTime = (rotate / 6) * 60000 - oldMinute * 60000
         } else if (prop === 'second') {
           let oldSecond = now.getSeconds()
-          self.drag_add_time = (rotate / 6) * 1000 - oldSecond * 1000
+          self.dragAddTime = (rotate / 6) * 1000 - oldSecond * 1000
         }
       }
       function up () {
-        self.drag_add_time = 0
+        self.dragAddTime = 0
         document.removeEventListener('mousemove', move)
         document.removeEventListener('mouseup', up)
         self.init()
       }
       document.addEventListener('mouseup', up, false)
     },
-    watch_time () {
-      let now = new Date(this.time + this.time_add + this.drag_add_time)
+    watchTime () {
+      let now = new Date(this.time + this.timeAdd + this.dragAddTime)
       this.hour = (function () {
         let hour = now.getHours()
         if (hour >= 13) {
@@ -158,15 +141,9 @@ export default {
     }
   },
   watch: {
-    time () {
-      this.watch_time()
-    },
-    time_add () {
-      this.watch_time()
-    },
-    drag_add_time () {
-      this.watch_time()
-    }
+    time: 'watchTime',
+    timeAdd: 'watchTime',
+    dragAddTime: 'watchTime'
   },
   computed: {
     scale () {
@@ -227,7 +204,7 @@ body{
       height: 10rem;
       @include flex-column-center;
       button{
-        vertical-align: center;
+        vertical-align: middle;
         font-size: 3rem;
         width: 7rem;
         height: 3rem;
