@@ -7,7 +7,7 @@
         <line v-for="val in 12" :key="'large' + val" :transform="`translate(250,250)rotate(${val * 30})`" x1="0" y1="-120" x2="0" y2="-135" style="stroke:#333;stroke-width:6;stroke-linecap:round"/>
         <line v-for="val in 60" :key="'little' + val" :transform="`translate(250,250)rotate(${val * 6})`" x1="0" y1="-130" x2="0" y2="-135" style="stroke:#333;stroke-width:4;stroke-linecap:round"/>
       </g>
-      <g class="hour" @mousedown="dragChange('hour')" @touchmove="test"
+      <g class="hour" @mousedown="dragChange('hour')"
       :transform="`translate(250,250)rotate(${hour * 30 + minute * 0.5})`">
         <line x1="0" y1="15" x2="0" y2="-100" style="stroke:#333;stroke-width:15;stroke-linecap:round"/>
       </g>
@@ -25,7 +25,7 @@
     </div>
     <div class="control">
       <section>
-        <button v-for="val in [3600000, 60000, 1000]" :key="val" @click="btnChange(val)">+</button>
+        <button v-for="val in ['hourAdd', 'minuteAdd', 'secondAdd']" :key="val" @click="btnChange(val)">+</button>
       </section>
       <section class="time">
         <span>{{ hour > 9 ? Math.floor(hour) : '0' + Math.floor(hour) }}</span>
@@ -35,7 +35,7 @@
         <span>{{ second > 9 ? Math.floor(second) : '0' + Math.floor(second) }}</span>
       </section>
       <section>
-        <button v-for="val in [-3600000, -60000, -1000]" :key="val" @click="btnChange(val)">-</button>
+        <button v-for="val in ['hourAdd', 'minuteAdd', 'secondAdd']" :key="val" @click="btnChange(val, false)">-</button>
       </section>
     </div>
   </div>
@@ -43,6 +43,9 @@
 <script>
 export default {
   mounted () {
+    let now = new Date()
+    this.time.hour = now.getHours()
+    this.time.minute = now.getMinutes()
     this.init()
     window.onresize = () => {
       this.vw = document.body.clientWidth
@@ -52,27 +55,30 @@ export default {
     return {
       interval: null,
       vw: document.body.clientWidth,
-      time: 0,
-      hour: 0,
-      minute: 0,
-      second: 0,
-      timeAdd: 0,
-      dragAddTime: 0
+      time: {
+        hour: 0,
+        minute: 0,
+        second: 0,
+        hourAdd: 0,
+        minuteAdd: 0,
+        secondAdd: 0
+      }
     }
   },
   methods: {
-    test () {
-      console.log('touch')
-    },
     init () {
-      this.time = Date.now()
+      this.time.second = new Date().getSeconds()
       this.interval = setInterval(() => {
-        this.time = Date.now()
+        this.time.second = new Date().getSeconds()
       }, 1000)
     },
-    btnChange (num) {
+    btnChange (type, flag = true) {
       clearInterval(this.interval)
-      this.timeAdd += num
+      if (flag) {
+        this.time[type] += 1
+      } else {
+        this.time[type] -= 1
+      }
       this.init()
     },
     dragChange (prop) {
@@ -100,20 +106,13 @@ export default {
             rotate = Math.atan(Math.abs(x) / Math.abs(y)) * 180 / Math.PI + 180
           }
         }
-        let now = new Date(self.time + self.timeAdd)
         if (prop === 'hour') {
-          let oldHour = now.getHours()
-          let oldMinute = now.getMinutes()
-          if (oldHour >= 12) {
-            oldHour -= 12
-          }
-          self.dragAddTime = (rotate / 30) * 3600000 - oldHour * 3600000 - oldMinute * 60000
+          self.time.hourAdd += Math.floor(rotate / 360 * 12) - self.hour
+          self.time.minuteAdd += rotate % 30 / 30 * 60 - self.minute
         } else if (prop === 'minute') {
-          let oldMinute = now.getMinutes()
-          self.dragAddTime = (rotate / 6) * 60000 - oldMinute * 60000
+          self.time.minuteAdd += Math.floor(rotate / 360 * 60) - self.minute
         } else if (prop === 'second') {
-          let oldSecond = now.getSeconds()
-          self.dragAddTime = (rotate / 6) * 1000 - oldSecond * 1000
+          self.time.secondAdd += rotate / 360 * 60 - self.second
         }
       }
       function up () {
@@ -123,27 +122,35 @@ export default {
         self.init()
       }
       document.addEventListener('mouseup', up, false)
-    },
-    watchTime () {
-      let now = new Date(this.time + this.timeAdd + this.dragAddTime)
-      this.hour = (function () {
-        let hour = now.getHours()
-        if (hour >= 13) {
-          return hour - 12
-        } else if (hour === 0) {
-          return 12
-        } else {
-          return hour
-        }
-      }())
-      this.minute = now.getMinutes()
-      this.second = now.getSeconds()
     }
   },
   watch: {
-    time: 'watchTime',
-    timeAdd: 'watchTime',
-    dragAddTime: 'watchTime'
+    time: {
+      handler (time, oldTime) {
+        if (Math.abs(time.hourAdd) === 24) {
+          time.hourAdd = 0
+        } else if (Math.abs(time.minuteAdd) === 60) {
+          time.minuteAdd = 0
+        } else if (Math.abs(time.secondAdd) === 60) {
+          time.secondAdd = 0
+        }
+      },
+      deep: true
+    },
+    second (val, oldVal) {
+      if (val === 0 && oldVal === 59) {
+        this.time.minute++
+      } else if (val === 59 && oldVal === 0) {
+        this.time.minute--
+      }
+    },
+    minute (val, oldVal) {
+      if (val === 0 && oldVal === 59) {
+        this.time.hour++
+      } else if (val === 59 && oldVal === 0) {
+        this.time.hour--
+      }
+    }
   },
   computed: {
     scale () {
@@ -156,6 +163,36 @@ export default {
         return vw * 0.6 / 500
       } else if (vw < 480) {
         return vw * 0.8 / 500
+      }
+    },
+    hour () {
+      let hour = this.time.hour + this.time.hourAdd
+      if (hour > 23) {
+        return hour - 24
+      } else if (hour < 0) {
+        return hour + 24
+      } else {
+        return hour
+      }
+    },
+    minute () {
+      let minute = this.time.minute + this.time.minuteAdd
+      if (minute >= 60) {
+        return minute - 60
+      } else if (minute < 0) {
+        return minute + 60
+      } else {
+        return minute
+      }
+    },
+    second () {
+      let second = this.time.second + this.time.secondAdd
+      if (second >= 60) {
+        return second - 60
+      } else if (second < 0) {
+        return second + 60
+      } else {
+        return second
       }
     }
   }
