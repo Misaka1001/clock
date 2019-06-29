@@ -43,9 +43,6 @@
 <script>
 export default {
   mounted () {
-    let now = new Date()
-    this.time.hour = now.getHours() > 12 ? now.getHours() - 12 : now.getHours()
-    this.time.minute = now.getMinutes()
     this.init()
     window.onresize = () => {
       this.vw = document.body.clientWidth
@@ -67,7 +64,10 @@ export default {
   },
   methods: {
     init () {
-      this.time.second = new Date().getSeconds()
+      let now = new Date()
+      this.time.second = now.getSeconds()
+      this.time.minute = now.getMinutes()
+      this.time.hour = now.getHours() > 12 ? now.getHours() - 12 : now.getHours()
       this.interval = setInterval(() => {
         this.time.second = new Date().getSeconds()
       }, 1000)
@@ -79,7 +79,9 @@ export default {
       } else {
         this.time[type] -= 1
       }
-      this.init()
+      this.interval = setInterval(() => {
+        this.time.second = new Date().getSeconds()
+      }, 1000)
     },
     dragChange (prop) {
       document.addEventListener('mousemove', move, false)
@@ -108,7 +110,6 @@ export default {
         }
         if (prop === 'hour') {
           self.time.hourAdd += Math.floor(rotate / 360 * 12) - self.hour
-          self.time.minuteAdd += rotate % 30 / 30 * 60 - self.minute
         } else if (prop === 'minute') {
           self.time.minuteAdd += Math.floor(rotate / 360 * 60) - self.minute
         } else if (prop === 'second') {
@@ -129,6 +130,8 @@ export default {
       handler (time, oldTime) {
         if (Math.abs(time.hourAdd) === 12) {
           time.hourAdd = 0
+        } else if (time.hourAdd < -12) {
+          time.hourAdd += 12
         } else if (Math.abs(time.minuteAdd) === 60) {
           time.minuteAdd = 0
         } else if (Math.abs(time.secondAdd) === 60) {
@@ -139,16 +142,16 @@ export default {
     },
     second (val, oldVal) {
       if (val === 0 && oldVal === 59) {
-        this.time.minute++
+        this.time.minuteAdd++
       } else if (val === 59 && oldVal === 0) {
-        this.time.minute--
+        this.time.minuteAdd--
       }
     },
     minute (val, oldVal) {
       if (val === 0 && oldVal === 59) {
-        this.time.hour++
+        this.time.hourAdd++
       } else if (val === 59 && oldVal === 0) {
-        this.time.hour--
+        this.time.hourAdd--
       }
     }
   },
