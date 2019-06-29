@@ -44,7 +44,7 @@
 export default {
   mounted () {
     let now = new Date()
-    this.time.hour = now.getHours()
+    this.time.hour = now.getHours() > 12 ? now.getHours() - 12 : now.getHours()
     this.time.minute = now.getMinutes()
     this.init()
     window.onresize = () => {
@@ -127,7 +127,7 @@ export default {
   watch: {
     time: {
       handler (time, oldTime) {
-        if (Math.abs(time.hourAdd) === 24) {
+        if (Math.abs(time.hourAdd) === 12) {
           time.hourAdd = 0
         } else if (Math.abs(time.minuteAdd) === 60) {
           time.minuteAdd = 0
@@ -167,10 +167,10 @@ export default {
     },
     hour () {
       let hour = this.time.hour + this.time.hourAdd
-      if (hour > 23) {
-        return hour - 24
-      } else if (hour < 0) {
-        return hour + 24
+      if (hour > 12) {
+        return hour - 12
+      } else if (hour < 1) {
+        return hour + 12
       } else {
         return hour
       }
